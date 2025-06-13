@@ -25,10 +25,10 @@ export default function TokenPage() {
     ],
   });
 
-  const name = contractData?.[0] as string;
-  const symbol = contractData?.[1] as string;
-  const decimals = contractData?.[2] as number;
-  const rawTotalSupply = contractData?.[3] as bigint;
+  const name = contractData?.[0]?.result as string;
+  const symbol = contractData?.[1]?.result as string;
+  const decimals = contractData?.[2]?.result as number;
+  const rawTotalSupply = contractData?.[3]?.result as bigint;
   const totalSupply = rawTotalSupply ? formatUnits(rawTotalSupply, decimals) : undefined;
 
   const {
@@ -41,7 +41,7 @@ export default function TokenPage() {
     abi: TokenABI,
     functionName: 'balanceOf',
     args: [address as `0x${string}`],
-    enabled: isConnected,
+    query: { enabled: isConnected },
   });
 
   const rawBalance = balanceData as bigint;
@@ -54,14 +54,14 @@ export default function TokenPage() {
 
   const {
     writeContract: approveWrite,
-    isLoading: isApproveLoading,
+    isPending: isApproveLoading,
     isSuccess: isApproveSuccess,
     error: approveError,
   } = useWriteContract();
 
   const {
     writeContract: transferWrite,
-    isLoading: isTransferLoading,
+    isPending: isTransferLoading,
     isSuccess: isTransferSuccess,
     error: transferError,
   } = useWriteContract();
