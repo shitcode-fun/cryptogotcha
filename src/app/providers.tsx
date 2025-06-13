@@ -10,7 +10,7 @@ import { base, baseSepolia } from 'wagmi/chains';
 const WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '7ab5a4842a5dfe979ced738203d2729c';
 
 const wagmiConfig = getDefaultConfig({
-  appName: 'App Name',
+  appName: 'CryptoGotcha',
   projectId: WALLETCONNECT_PROJECT_ID,
   chains: [baseSepolia, base],
   transports: {
