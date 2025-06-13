@@ -4,6 +4,8 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useAccount, useReadContract, useReadContracts, useWriteContract } from 'wagmi';
 import { formatUnits, parseUnits } from 'ethers';
 import TokenABI from '@/abis/Token.json';
+import { useToast } from '@/components/ToastProvider';
+import { Skeleton } from '@/components/Skeleton';
 
 const TOKEN_ADDRESS = '0x7effc7be6b591801e16f6b5dc29f08296a2b9dbe';
 
@@ -84,27 +86,59 @@ export default function TokenPage() {
     });
   };
 
+  const toast = useToast();
+
   useEffect(() => {
     if (isTransferSuccess) {
       refetchBalance();
       setTransferRecipient('');
       setTransferAmount('');
+      toast('Transfer successful!', 'success');
     }
-  }, [isTransferSuccess, refetchBalance]);
+  }, [isTransferSuccess, refetchBalance, toast]);
 
   useEffect(() => {
     if (isApproveSuccess) {
       setApproveSpender('');
       setApproveAmount('');
+      toast('Approval successful!', 'success');
     }
-  }, [isApproveSuccess]);
+  }, [isApproveSuccess, toast]);
+
+  useEffect(() => {
+    if (approveError) {
+      toast(approveError.message, 'error');
+    }
+  }, [approveError, toast]);
+
+  useEffect(() => {
+    if (transferError) {
+      toast(transferError.message, 'error');
+    }
+  }, [transferError, toast]);
 
   if (isLoadingContract) {
-    return <div>Loading token data...</div>;
+    return (
+      <div className="max-w-md mx-auto space-y-4">
+        <Skeleton className="h-8 w-3/4" />
+        <Skeleton className="h-6 w-1/2" />
+        <Skeleton className="h-6 w-2/3" />
+      </div>
+    );
   }
 
   if (isErrorContract) {
-    return <div>Error loading token data.</div>;
+    return (
+      <div className="text-center text-red-600">
+        <p>Failed to load token data.</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-2 px-4 py-2 bg-red-600 text-white rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -120,15 +154,17 @@ export default function TokenPage() {
         <span className="font-semibold">Total Supply:</span> {totalSupply}
       </p>
       {isConnected && (
-        isLoadingBalance ? (
-          <p>Loading your balance...</p>
-        ) : isErrorBalance ? (
-          <p>Error loading your balance.</p>
-        ) : (
-          <p>
-            <span className="font-semibold">Your Balance:</span> {balance} {symbol}
-          </p>
-        )
+        <>
+          {isLoadingBalance ? (
+            <Skeleton className="h-4 w-1/2" />
+          ) : isErrorBalance ? (
+            <p className="text-red-600">Error loading your balance.</p>
+          ) : (
+            <p>
+              <span className="font-semibold">Your Balance:</span> {balance} {symbol}
+            </p>
+          )}
+        </>
       )}
       {!isConnected && <p>Connect your wallet to view your balance.</p>}
       {isConnected && (
@@ -140,24 +176,22 @@ export default function TokenPage() {
               placeholder="Spender Address"
               value={approveSpender}
               onChange={(e) => setApproveSpender(e.target.value)}
-              className="w-full px-2 py-1 border rounded"
+            className="w-full px-2 py-1 border rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors"
             />
             <input
               type="text"
               placeholder={`Amount (${symbol})`}
               value={approveAmount}
               onChange={(e) => setApproveAmount(e.target.value)}
-              className="w-full px-2 py-1 border rounded"
+              className="w-full px-2 py-1 border rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors"
             />
             <button
               type="submit"
               disabled={isApproveLoading}
-              className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50"
+              className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-600 transition-colors"
             >
               {isApproveLoading ? 'Approving...' : 'Approve'}
             </button>
-            {approveError && <p className="text-red-600">{approveError.message}</p>}
-            {isApproveSuccess && <p className="text-green-600">Approval successful!</p>}
           </form>
           <form onSubmit={handleTransfer} className="space-y-2 border-t pt-4">
             <h2 className="text-xl font-semibold">Transfer Tokens</h2>
@@ -166,24 +200,22 @@ export default function TokenPage() {
               placeholder="Recipient Address"
               value={transferRecipient}
               onChange={(e) => setTransferRecipient(e.target.value)}
-              className="w-full px-2 py-1 border rounded"
+            className="w-full px-2 py-1 border rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors"
             />
             <input
               type="text"
               placeholder={`Amount (${symbol})`}
               value={transferAmount}
               onChange={(e) => setTransferAmount(e.target.value)}
-              className="w-full px-2 py-1 border rounded"
+              className="w-full px-2 py-1 border rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors"
             />
             <button
               type="submit"
               disabled={isTransferLoading}
-              className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+              className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors"
             >
               {isTransferLoading ? 'Transferring...' : 'Transfer'}
             </button>
-            {transferError && <p className="text-red-600">{transferError.message}</p>}
-            {isTransferSuccess && <p className="text-green-600">Transfer successful!</p>}
           </form>
         </>
       )}
